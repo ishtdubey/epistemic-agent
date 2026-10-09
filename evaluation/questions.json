@@ -1,0 +1,6 @@
+[
+  {"question": "why do cats sleep so much", "expected_source": "cats.txt"},
+  {"question": "how do I bake with eggs", "expected_source": "cooking.txt"},
+  {"question": "why did the stock market fall", "expected_source": "stocks.txt"},
+  {"question": "how often should I walk my dog", "expected_source": "dogs.txt"}
+]
