@@ -84,3 +84,22 @@ def run_hybrid_retrieval(
             score=0.0,
         )
     ]
+
+def hybrid_pipeline(
+    query: str,
+    corpus: list[dict],
+    vector_results: list[RetrievedChunk],
+    limit: int = 5,
+    rerank_fn=None,
+) -> list[RetrievedChunk]:
+    """Run the full search: keyword search + meaning search -> blend -> rerank.
+    corpus: all chunks as dicts (text, source, metadata), for keyword search.
+    vector_results: chunks already found by the Vector DB's meaning search.
+    rerank_fn: only for tests, so they don't need the big model."""
+    keyword_results = keyword_search(query, corpus, limit=limit * 3)
+    blended = blend_results(keyword_results, vector_results, limit=limit * 3)
+
+    if rerank_fn is None:
+        from src.rag.ranker import rerank as rerank_fn  # imported here to avoid a circular import
+
+    return rerank_fn(query, blended, limit=limit)
