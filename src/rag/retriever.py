@@ -40,13 +40,42 @@ def keyword_search(query: str, chunks: list[dict], limit: int = 5) -> list[Retri
     ]
 
 
+def blend_results(
+    keyword_results: list[RetrievedChunk],
+    vector_results: list[RetrievedChunk],
+    limit: int = 5,
+    k: int = 60,
+) -> list[RetrievedChunk]:
+    """Merge two ranked lists into one using Reciprocal Rank Fusion.
+    A chunk earns 1/(k + position) points from each list it appears in."""
+    points: dict[tuple, float] = {}
+    chunk_by_key: dict[tuple, RetrievedChunk] = {}
+
+    for results in (keyword_results, vector_results):
+        for position, chunk in enumerate(results, start=1):
+            key = (chunk.source, chunk.text)
+            points[key] = points.get(key, 0.0) + 1.0 / (k + position)
+            chunk_by_key.setdefault(key, chunk)
+
+    best_keys = sorted(points, key=points.get, reverse=True)[:limit]
+    return [
+        RetrievedChunk(
+            text=chunk_by_key[key].text,
+            source=chunk_by_key[key].source,
+            metadata=chunk_by_key[key].metadata,
+            score=points[key],
+        )
+        for key in best_keys
+    ]
+
+
 def run_hybrid_retrieval(
     query: str,
     filters: dict | None = None,
     limit: int = 5,
 ) -> list[RetrievedChunk]:
-    # Still a placeholder. Later this will blend keyword_search
-    # with the Vector DB's meaning search.
+    # Still a placeholder. Later this will call keyword_search and the
+    # Vector DB's meaning search, then blend_results.
     return [
         RetrievedChunk(
             text="This is a placeholder chunk.",
