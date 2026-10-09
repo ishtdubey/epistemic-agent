@@ -1,0 +1,1 @@
+Python is a popular programming language for data analysis and web development. Its simple syntax makes Python easy for beginners to read and write.

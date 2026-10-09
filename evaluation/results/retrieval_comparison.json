@@ -1,0 +1,17 @@
+{
+  "keyword_only": {
+    "questions": 10,
+    "hit_rate": 1.0,
+    "mrr": 1.0,
+    "avg_latency_ms": 1.277289999416098
+  },
+  "blended_no_rerank": {
+    "questions": 10,
+    "hit_rate": 1.0,
+    "mrr": 1.0,
+    "avg_latency_ms": 1.0174300012295134
+  },
+  "reranked": {
+    "error": "could not run: [WinError 1114] A dynamic link library (DLL) initialization routine failed. Error loading \"C:\\Users\\KIIT0001\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\torch\\lib\\c10.dll\" or one of its dependencies."
+  }
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "question": "how does a python kill its prey",
+    "expected_source": "python_snake.txt"
+  },
+  {
+    "question": "is python easy for beginners",
+    "expected_source": "python_code.txt"
+  },
+  {
+    "question": "are apples good for baking pies",
+    "expected_source": "apple_fruit.txt"
+  },
+  {
+    "question": "where does the company sell its phones and laptops",
+    "expected_source": "apple_company.txt"
+  },
+  {
+    "question": "which big cat swims and hunts turtles",
+    "expected_source": "jaguar_animal.txt"
+  },
+  {
+    "question": "which British company makes luxury sports cars",
+    "expected_source": "jaguar_car.txt"
+  },
+  {
+    "question": "how does a bank earn money from loans",
+    "expected_source": "bank_money.txt"
+  },
+  {
+    "question": "what happens to a river bank during a flood",
+    "expected_source": "bank_river.txt"
+  },
+  {
+    "question": "how long is a year on the closest planet to the sun",
+    "expected_source": "mercury_planet.txt"
+  },
+  {
+    "question": "why is liquid silver metal poisonous",
+    "expected_source": "mercury_metal.txt"
+  }
+]
