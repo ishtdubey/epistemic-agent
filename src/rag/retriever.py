@@ -1,7 +1,13 @@
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
 from rank_bm25 import BM25Okapi
+
+from src.rag.chunking import chunk_file
+
+# Temporary: folder with .txt files. Replaced when the Vector DB is ready.
+DATA_DIR = Path("data/sample")
 
 
 @dataclass
@@ -69,22 +75,6 @@ def blend_results(
     ]
 
 
-def run_hybrid_retrieval(
-    query: str,
-    filters: dict | None = None,
-    limit: int = 5,
-) -> list[RetrievedChunk]:
-    # Still a placeholder. Later this will call keyword_search and the
-    # Vector DB's meaning search, then blend_results.
-    return [
-        RetrievedChunk(
-            text="This is a placeholder chunk.",
-            source="placeholder.txt",
-            metadata={"note": "fake data"},
-            score=0.0,
-        )
-    ]
-
 def hybrid_pipeline(
     query: str,
     corpus: list[dict],
@@ -103,3 +93,68 @@ def hybrid_pipeline(
         from src.rag.ranker import rerank as rerank_fn  # imported here to avoid a circular import
 
     return rerank_fn(query, blended, limit=limit)
+
+
+# ---------------------------------------------------------------------------
+# Stand-ins. Replace these two functions when the Vector DB is ready.
+# ---------------------------------------------------------------------------
+
+def load_corpus(data_dir=None) -> list[dict]:
+    """TEMPORARY: read every .txt file in the data folder and cut it into chunks.
+    Later: replace with the Vector DB's 'give me all chunks' function."""
+    folder = Path(data_dir or DATA_DIR)
+    corpus = []
+    for path in sorted(folder.glob("*.txt")):
+        corpus.extend(chunk_file(str(path)))
+    return corpus
+
+
+def vector_search(query: str, filters: dict | None = None, limit: int = 5) -> list[RetrievedChunk]:
+    """TEMPORARY: returns nothing, so only keyword search is used for now.
+    Later: call the Vector DB's meaning search and return RetrievedChunk objects."""
+    return []
+
+
+# ---------------------------------------------------------------------------
+# The functions your teammates call
+# ---------------------------------------------------------------------------
+
+def _matches_filters(chunk: dict, filters: dict | None) -> bool:
+    """True if the chunk's metadata has every key/value in filters."""
+    if not filters:
+        return True
+    return all(chunk["metadata"].get(key) == value for key, value in filters.items())
+
+
+def _safe_rerank(query: str, chunks: list[RetrievedChunk], limit: int = 5) -> list[RetrievedChunk]:
+    """Rerank with the real model. If it can't load (e.g. torch crashes), keep the blended order."""
+    try:
+        from src.rag.ranker import rerank
+
+        return rerank(query, chunks, limit=limit)
+    except (OSError, ImportError):
+        print("Warning: reranker unavailable, using the blended order instead.")
+        return chunks[:limit]
+
+
+def run_hybrid_retrieval(
+    query: str,
+    filters: dict | None = None,
+    limit: int = 5,
+) -> list[RetrievedChunk]:
+    """Full search: keyword + meaning search, blended, then reranked."""
+    corpus = [c for c in load_corpus() if _matches_filters(c, filters)]
+    vector_results = vector_search(query, filters, limit * 3)
+    return hybrid_pipeline(query, corpus, vector_results, limit, rerank_fn=_safe_rerank)
+
+
+def run_direct_retrieval(
+    query: str,
+    filters: dict | None = None,
+    limit: int = 5,
+) -> list[RetrievedChunk]:
+    """Lighter version for simple factual questions: one pass, no reranking."""
+    corpus = [c for c in load_corpus() if _matches_filters(c, filters)]
+    keyword_results = keyword_search(query, corpus, limit=limit * 3)
+    vector_results = vector_search(query, filters, limit * 3)
+    return blend_results(keyword_results, vector_results, limit=limit)
