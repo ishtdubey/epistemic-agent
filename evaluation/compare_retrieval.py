@@ -38,6 +38,7 @@ def main():
     results = {}
     for name, fn in variants.items():
         try:
+            fn("warm up", limit=1)  # first call loads the model, so don't time it
             results[name] = evaluate(fn, dataset)
         except (OSError, ImportError) as error:
             results[name] = {"error": f"could not run: {error}"}
